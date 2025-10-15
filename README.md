@@ -1,59 +1,171 @@
-# alihaider-eks-cluster — EKS with Terraform & GitHub Actions
+# Terraform EKS Cluster Deployment with Jenkins CI/CD
 
-**Author:** Ali Haider — DevOps Engineer 
+## 🚀 Project Overview
+This project provisions a **fully managed EKS (Elastic Kubernetes Service)** cluster using **Terraform** and automates the deployment pipeline using **Jenkins**.
 
-**Region:** us-east-1
-**Cluster Name:** alihaider-eks-cluster
+### ✅ Key Features
+- EKS cluster created using Terraform (latest stable version).
+- Managed node groups using `t2.medium` instances.
+- Remote S3 backend for Terraform state management.
+- Jenkins CI/CD pipeline integrated for automation.
+- Follows infrastructure-as-code best practices.
 
-This repository provisions an **Amazon EKS** cluster using **Terraform** with a **managed node group** (t2.medium) and integrates a **GitHub Actions** CI/CD workflow to run the Terraform pipeline (plan/apply). The project uses an **S3 remote backend** with **DynamoDB locking** for safe collaborative state management.
+---
 
-## What is included
-- `modules/vpc` — VPC, public & private subnets, IGW, NAT
-- `modules/eks` — EKS cluster, IAM roles, managed node group
-- `backend/backend.tf` — optional bootstrap to create S3 bucket & DynamoDB table
-- `.github/workflows/terraform.yml` — CI/CD pipeline
-- `provider.tf`, `main.tf`, `variables.tf`, `outputs.tf`, `.gitignore`
+## ⚙️ Project Structure
+```
+terraform-eks-project/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── backend.tf
+├── provider.tf
+└── jenkinsfile
+└── README.md
 
-## Quickstart
-1. Create or bootstrap the backend S3 bucket and DynamoDB table (optional):
 
+    
+```
+
+---
+
+## 🧱 Prerequisites
+Ensure you have the following installed on your local machine:
+
+- **AWS CLI** – Configured with your credentials (`aws configure`)
+- **Terraform** – Version >= 1.5
+- **kubectl** – To interact with the EKS cluster
+- **Jenkins** – Installed locally or on an EC2 instance
+- **Git** – For source control
+
+---
+
+## ☁️ Terraform Setup
+
+### 1. Initialize Terraform
 ```bash
-cd backend
 terraform init
+```
+
+### 2. Validate and Plan
+```bash
+terraform validate
+terraform plan
+```
+
+### 3. Apply the Configuration
+```bash
 terraform apply -auto-approve
 ```
 
-2. Update `provider.tf` backend config with your bucket and table names.
-3. Set GitHub repository secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`.
-4. Initialize & apply locally (optional):
-
+### 4. Configure `kubectl`
 ```bash
-terraform init -backend-config="bucket=YOUR_BUCKET" -backend-config="key=eks/terraform.tfstate" -backend-config="region=us-east-1" -backend-config="dynamodb_table=YOUR_TABLE"
-terraform plan -var-file="terraform.tfvars"
-terraform apply -auto-approve -var-file="terraform.tfvars"
-```
-
-## Accessing the cluster from Windows
-Install AWS CLI and kubectl; then run (PowerShell or Git Bash):
-
-```powershell
 aws eks update-kubeconfig --region us-east-1 --name alihaider-eks-cluster
 kubectl get nodes
-kubectl get pods -A
 ```
 
-## Tags used for all resources
-All resources are tagged with:
+---
 
+## 🔧 Jenkins Setup (Windows)
+
+### 1. Install Jenkins
+Download and install Jenkins from: [https://www.jenkins.io/download](https://www.jenkins.io/download)
+
+### 2. Start Jenkins Service
+```bash
+net start jenkins
 ```
-Project = "alihaider-eks-cluster"
-Environment = "dev"
-ManagedBy = "Terraform"
-Owner = "Ali Haider"
+
+Access Jenkins in your browser: `http://localhost:8080`
+
+### 3. Install Required Plugins
+- Terraform
+- AWS Credentials
+- Git
+- Pipeline
+- Kubernetes CLI
+
+### 4. Configure Credentials
+In Jenkins:
+- Go to **Manage Jenkins → Credentials → Global → Add Credentials**
+- Add your **AWS Access Key ID** and **Secret Key**
+
+### 5. Create Jenkins Pipeline Job
+- Go to **New Item → Pipeline**
+- Name it `terraform-eks-pipeline`
+- Under **Pipeline Definition**, choose “Pipeline script from SCM”
+- Add your Git repository URL
+
+---
+
+## 🧩 Jenkinsfile Example
+
+```groovy
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = "us-east-1"
+        CLUSTER_NAME = "alihaider-eks-cluster"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/your-repo/terraform-eks-project.git'
+            }
+        }
+        stage('Init') {
+            steps {
+                sh 'terraform init'
+            }
+        }
+        stage('Validate') {
+            steps {
+                sh 'terraform validate'
+            }
+        }
+        stage('Plan') {
+            steps {
+                sh 'terraform plan -out=tfplan'
+            }
+        }
+        stage('Apply') {
+            steps {
+                sh 'terraform apply -auto-approve tfplan'
+            }
+        }
+        stage('Verify Cluster') {
+            steps {
+                sh 'aws eks update-kubeconfig --region us-east-1 --name ${CLUSTER_NAME}'
+                sh 'kubectl get nodes'
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline execution completed.'
+        }
+    }
+}
 ```
 
-## Notes & Best Practices
-- Use least-privilege IAM for CI credentials.
-- Enable S3 versioning for the Terraform state bucket.
-- Use PR reviews before merging to `main` (CI runs plan on PRs).
+---
 
+## 🧹 Cleanup Resources
+When done, destroy all resources to avoid costs:
+```bash
+terraform destroy -auto-approve
+```
+
+---
+
+## 🧠 Author
+**Ali Haider**  
+DevOps Engineer | AWS | Terraform | Jenkins | Kubernetes  
+📧 [alihaid649@example.com] 
+
+---
+
+## 🏁 Summary
+This project demonstrates production-grade infrastructure automation using Terraform and Jenkins, providing reusable IaC templates for EKS management and CI/CD deployment pipelines.
