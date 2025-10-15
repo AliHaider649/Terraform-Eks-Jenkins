@@ -85,10 +85,10 @@ pipeline {
         terraform init -input=false -backend=false
 
         echo "Checking format..."
-        terraform fmt -check -no-color
+        terraform fmt -check -recursive
 
         echo "Validating configuration..."
-        terraform validate -no-color -input=false -backend=false
+        terraform validate 
       '''
     }
   }
