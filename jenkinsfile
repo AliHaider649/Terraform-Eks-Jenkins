@@ -49,9 +49,6 @@ pipeline {
     }
 
     stage('Terraform Init') {
-      environment {
-        // bind AWS credentials for init (backend access)
-      }
       steps {
         withCredentials([
           string(credentialsId: 'aws_access_key_id', variable: 'AWS_ACCESS_KEY_ID'),
