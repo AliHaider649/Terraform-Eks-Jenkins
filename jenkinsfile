@@ -60,7 +60,7 @@ pipeline {
             export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             export AWS_DEFAULT_REGION=${AWS_REGION}
             cd ${TF_WORKING_DIR}
-            terraform init -input=false -get-plugins=true
+            terraform init -input=false 
           """
         }
       }
