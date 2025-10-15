@@ -16,7 +16,7 @@ pipeline {
   environment {
     // Set region and tf var file name (edit if using other var-file)
     AWS_REGION = 'us-east-1'
-    TF_VAR_file = 'terraform.tfvars'            // adapt if you use different name
+    // TF_VAR_file = 'terraform.tfvars'            // adapt if you use different name
     // You may override these with pipeline parameters or credentials if desired
     TF_WORKING_DIR = '.'                        // terraform root (repo root)
   }
@@ -91,11 +91,11 @@ pipeline {
             export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             export AWS_DEFAULT_REGION=${AWS_REGION}
             cd ${TF_WORKING_DIR}
-            terraform plan -input=false -var-file="${TF_VAR_file}" -out=tfplan.binary
-            terraform show -no-color tfplan.binary > tfplan.txt
+            terraform plan -input=false 
+            
           """
           // Archive the plan text for review
-          archiveArtifacts allowEmptyArchive: false, artifacts: "${TF_WORKING_DIR}/tfplan.txt", fingerprint: true
+          // archiveArtifacts allowEmptyArchive: false, artifacts: "${TF_WORKING_DIR}/tfplan.txt", fingerprint: true
         }
       }
     }
@@ -116,7 +116,7 @@ pipeline {
             export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             export AWS_DEFAULT_REGION=${AWS_REGION}
             cd ${TF_WORKING_DIR}
-            terraform apply -input=false -auto-approve tfplan.binary
+            terraform apply  -auto-approve 
           """
         }
       }
@@ -136,7 +136,7 @@ pipeline {
             export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             export AWS_DEFAULT_REGION=${AWS_REGION}
             cd ${TF_WORKING_DIR}
-            terraform apply -input=false -auto-approve tfplan.binary
+            terraform apply -auto-approve
           """
         }
       }
